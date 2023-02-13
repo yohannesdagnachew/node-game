@@ -1,17 +1,17 @@
 const router = require('express').Router();
 const subscribers = require('../Models/user');
-// const { signUp, verifyOtp } = require('../Controllers/userController');
+const { signUp, verifyOtp } = require('../Controllers/userController');
 
-// router.route('/signUp').post(signUp); // POST /user/signUp
+router.route('/signup').post(signUp); // POST /user/signUp
 
-// router.route('/verifyOtp').post(verifyOtp); // POST /user/verifyOtp
+router.route('/verifyOtp').post(verifyOtp); // POST /user/verifyOtp
 
 router.get('/', async (req, res) => {
     
     try {
-        const subscribers = await new subscribers.find();
-        console.log(subscribers);
-        res.json(subscribers);
+        const subscriber = await subscribers.find();
+        console.log(subscriber);
+        res.json(subscriber);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

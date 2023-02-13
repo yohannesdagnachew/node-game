@@ -7,7 +7,7 @@ const { User } = require('../Models/userModel');
 const { Otp } = require('../Models/otpModel');
 
 module.exports.signUp = async (req, res) => {
-    // const user = User.findOne({ number: req.body.number });
+    // const user = User.find({ number: req.body.number });
     // if(user) return res.status(400).send('User already registered');
     const OTP = otpGenerator.generate(6, { digits: true, alphabets: false, upperCase: false, specialChars: false });
     const number = req.body.number;
