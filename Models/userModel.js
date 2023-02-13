@@ -2,10 +2,6 @@ const { Schema, model } = require('mongoose');
 const jwt = require('jsonwebtoken');
 
 const userSchema = new Schema({
-    name: {
-        type: String,
-        required: true,
-    },
     number: {
         type: String,
         required: true,
@@ -17,4 +13,4 @@ userSchema.methods.generateAuthToken =  function() {
     return token;
 } 
 
-module.exports = model('User', userSchema);
+module.exports.User = model('User', userSchema);
