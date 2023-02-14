@@ -2,8 +2,7 @@ const bcrypt =  require('bcrypt');
 const _ = require('lodash');
 const axios = require('axios');
 const otpGenerator = require('otp-generator');
-const jwtSecretKey = process.env.JWT_PRIVATE_KEY;
-const jwt = require('jsonwebtoken');
+const generateToken = require('../utils/generateToken');
 
 const Users  = require('../Models/users');
 const { Otp } = require('../Models/otpModel');
