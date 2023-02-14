@@ -2,12 +2,17 @@ const bcrypt =  require('bcrypt');
 const _ = require('lodash');
 const axios = require('axios');
 const otpGenerator = require('otp-generator');
+const jwtSecretKey = process.env.JWT_PRIVATE_KEY;
+const jwt = require('jsonwebtoken');
 
 const Users  = require('../Models/users');
 const { Otp } = require('../Models/otpModel');
+const { models } = require('mongoose');
 
 module.exports.signUp = async (req, res) => {
     const user =  await Users.find({ name: req.body.name });
+    const token = jwt.sign({ _id: user._id, name: user.name }, jwtSecretKey, {expiresIn: '1d'});
+    console.log(token)
     if(user.length > 0) return res.status(400).send('User already registered');
     try {
         const newUser = new Users({
@@ -36,4 +41,9 @@ module.exports.signUp = async (req, res) => {
 }
 
 module.exports.verifyOtp = async (req, res) => {
+}
+
+// Login
+
+module.exports.login = async (req, res) => {
 }
