@@ -11,8 +11,8 @@ const generateToken = async (user) => {
     const accessToken = jwt.sign(paylod, jwtSecretKey, { expiresIn: "15m" });
     const refreshToken = jwt.sign(paylod, jwtSecretKey, { expiresIn: "7d" });
     
-    const userToken = await Users.findOneAndUpdate(
-        { userId: user._id },
+    const userToken = await Token.findOneAndUpdate(
+        { userId: user.id },
     );
     if(userToken) await userToken.remove()   
     const token = new  Token({
@@ -25,4 +25,4 @@ const generateToken = async (user) => {
   }
 };
 
-export default generateToken;
+module.exports = generateToken;

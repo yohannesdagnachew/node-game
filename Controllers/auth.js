@@ -10,8 +10,6 @@ const { models } = require('mongoose');
 
 module.exports.signUp = async (req, res) => {
     const user =  await Users.find({ name: req.body.name });
-    const token = jwt.sign({ _id: user._id, name: user.name }, jwtSecretKey, {expiresIn: '1d'});
-    console.log(token)
     if(user.length > 0) return res.status(400).send('User already registered');
     try {
         const newUser = new Users({
@@ -45,4 +43,7 @@ module.exports.verifyOtp = async (req, res) => {
 // Login
 
 module.exports.login = async (req, res) => {
+    const user =  await Users.findOne({ name: req.body.name });
+    const {accessToken, refreshToken} = await generateToken(user);
+    res.status(200).json({accessToken, refreshToken});
 }
