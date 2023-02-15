@@ -27,24 +27,30 @@ module.exports.signUp = async (req, res) => {
 
 module.exports.verifyOtp = async (req, res) => {
     const otpHolder = await Otp.find({number: req.body.phone});
-    if(otpHolder.length === 0 ) return res.status(400).send("Invalid phone number");
+    if(otpHolder.length === 0 ) return res.status(400).send("Invalid OTP");
     const rightOtp = otpHolder[otpHolder.length - 1]
     const validOtp = await bcrypt.compare(req.body.otp, rightOtp.otp);
     if(rightOtp.number === req.body.phone && validOtp) {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(req.body.password, salt);
         try {
             const newUser = new Users({
                 name: req.body.name,
                 email: req.body.email,
-                password: req.body.password,
+                password: hashedPassword,
                 passwordConfirm: req.body.passwordConfirm,
                 phone: req.body.phone,
             });
 
-            const result = await newUser.save();
-            console.log(result);
-            const {accessToken, refreshToken} = await generateToken(result);
+            const createUser = await newUser.save();
+            const {name, email} = createUser;
+            const userData = {
+                name: name,
+                email: email
+            }
+            const {accessToken, refreshToken} = await generateToken(createUser);
             const deleteOtp = await Otp.deleteMany({number: req.body.phone});
-            res.status(200).json({message: "User created successfully", result, accessToken, refreshToken});
+            res.status(200).json({message: "User created successfully", userData,accessToken, refreshToken});
         }
         catch (err) {
             res.status(400).send(err.message);
