@@ -1,4 +1,5 @@
-const jwtSecretKey = process.env.JWT_PRIVATE_KEY;
+const jwtSecretKey = process.env.JWT_PRIVATE_KEY; 
+const jwtPublicKey = process.env.JWT_PUBLIC_KEY;
 const jwt = require("jsonwebtoken");
 const Token   = require("../Models/token");
 
@@ -9,7 +10,7 @@ const generateToken = async (user) => {
       name: user.name,
     };
     const accessToken = jwt.sign(paylod, jwtSecretKey, { expiresIn: "15m" });
-    const refreshToken = jwt.sign(paylod, jwtSecretKey, { expiresIn: "7d" });
+    const refreshToken = jwt.sign(paylod, jwtPublicKey, { expiresIn: "7d" });
     
     const userToken = await Token.findOneAndUpdate(
         { userId: user.id },
