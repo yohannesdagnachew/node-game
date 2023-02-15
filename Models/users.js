@@ -6,11 +6,31 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    passwordConfirm:{
+        type: String,
+        required: true,
+    },
+    role: {
+        type: String,
+        default: 'user',
+    },
+    phone: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+
 }, { timestamps: true });
 
-userSchema.methods.generateAuthToken =  () => {
-    const token = jwt.sign({ _id: this._id, number: this.number }, process.env.JWT_PRIVATE_KEY, {expiresIn: '1d'});
-    return token;
-} 
+
 
 module.exports = mongoose.model('Users', userSchema);
