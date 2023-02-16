@@ -9,8 +9,12 @@ const jwtPublicKey= process.env.JWT_PUBLIC_KEY;
 const Users  = require('../Models/users');
 const { Otp } = require('../Models/otpModel');
 const { models } = require('mongoose');
+const requestValidation = require('../utils/requestValidation');
+const loginValidation = require('../utils/requestValidation');
 
 module.exports.signUp = async (req, res) => {
+    const { error } = requestValidation.signUpValidation(req.body);
+    if(error) return res.status(400).send(error.details[0].message);
     const user =  await Users.find({ email: req.body.email, phone: req.body.phone, name: req.body.name});
     if(user.length > 0) return res.status(400).send('User already registered');
     const OTP = otpGenerator.generate(6, { digits: true, lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false });
@@ -71,6 +75,8 @@ module.exports.verifyOtp = async (req, res) => {
 // Login
 
 module.exports.login = async (req, res) => {
+    const { error } = loginValidation.loginValidation(req.body);
+    if(error) return res.status(400).send(error.details[0].message);
     const user =  await Users.findOne({ email: req.body.email});
     if(!user) return res.status(400).send('Invalid email or password');
     const validPassword = await bcrypt.compare(req.body.password, user.password);
