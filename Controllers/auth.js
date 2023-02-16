@@ -8,7 +8,6 @@ const jwtPublicKey= process.env.JWT_PUBLIC_KEY;
 
 const Users  = require('../Models/users');
 const { Otp } = require('../Models/otpModel');
-const { models } = require('mongoose');
 const requestValidation = require('../utils/requestValidation');
 const loginValidation = require('../utils/requestValidation');
 
