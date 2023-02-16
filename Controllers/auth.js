@@ -36,8 +36,8 @@ module.exports.signUp = async (req, res) => {
 
 module.exports.verifyOtp = async (req, res) => {
     const userDataToVerify = jwt.verify(req.body.token, jwtPublicKey);
- 
     const otpHolder = await Otp.find({number: userDataToVerify.phone});
+
     if(otpHolder.length === 0 ) return res.status(400).send("Invalid OTP");
     const rightOtp = otpHolder[otpHolder.length - 1]
     const validOtp = await bcrypt.compare(req.body.otp, rightOtp.otp);
@@ -71,7 +71,10 @@ module.exports.verifyOtp = async (req, res) => {
 // Login
 
 module.exports.login = async (req, res) => {
-    const user =  await Users.findOne({ name: req.body.name });
+    const user =  await Users.findOne({ email: req.body.email});
+    if(!user) return res.status(400).send('Invalid email or password');
+    const validPassword = await bcrypt.compare(req.body.password, user.password);
+    if(!validPassword) return res.status(400).send('Invalid email or password');
     const {accessToken, refreshToken} = await generateToken(user);
     res.status(200).json({accessToken, refreshToken});
 }
