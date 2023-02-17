@@ -2,29 +2,22 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 
 const gameSchema = new mongoose.Schema({
-    name: {
+    id : {
         type: String,
         required: true,
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
+    question1: {
+        type: Object,
+        timestamps: true,
     },
-    password: {
-        type: String,
-        required: true,
+    question2: {
+        type: Object,
+        timestamps: true,
     },
-    role: {
-        type: String,
-        default: 'user',
+    question3: {
+        type: Object,
+        timestamps: true,
     },
-    phone: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-
 }, { timestamps: true });
 
 
