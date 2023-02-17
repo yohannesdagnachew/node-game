@@ -2,10 +2,6 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 
 const gameSchema = new mongoose.Schema({
-    id : {
-        type: String,
-        required: true,
-    },
     question1: {
         type: Object,
         timestamps: true,
@@ -17,6 +13,10 @@ const gameSchema = new mongoose.Schema({
     question3: {
         type: Object,
         timestamps: true,
+    },
+    score: {
+        type: Number,
+        default: 0,
     },
 }, { timestamps: true });
 

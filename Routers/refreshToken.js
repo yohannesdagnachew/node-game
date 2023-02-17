@@ -8,7 +8,6 @@ const verifyRefreshToken = require('../utils/verifyRefreshToken');
 router.route('/').post(async (req, res) => {
     verifyRefreshToken(req.body.refreshToken)
         .then((paylod) => {
-            console.log(paylod);
             const dataDetails = {_id: paylod._id};
             const accessToken = jwt.sign(dataDetails, jwtPublicKey, {expiresIn: '15m'});
             res.status(200).json({error: false, message: "Token generated successfully", accessToken});
