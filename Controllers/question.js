@@ -4,6 +4,16 @@ const Question = require('../models/questionModel');
 
 
 module.exports.addQuestion = async (req, res) => {
-    console.log(req.body);
-    res.status(200).send("Question added successfully");
+    const {question, option1, option2, option3, option4, answer, questionId } = req.body;
+    const questionData = new Question({
+        question,
+        option1,
+        option2,
+        option3,
+        option4,
+        answer,
+        questionId
+    });
+    const data = await questionData.save();
+    res.status(200).send({message: "Question added successfully", data});
 }
