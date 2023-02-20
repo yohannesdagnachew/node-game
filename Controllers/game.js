@@ -10,6 +10,7 @@ module.exports.createGame = async (req, res) => {
         question2: question[1],
         question3: question[2],
     });
+  
     await game.save();
     const questionOne = game.question1;
     const gameId = game._id;
@@ -18,8 +19,6 @@ module.exports.createGame = async (req, res) => {
 
 module.exports.answerGameQuestion = async (req, res) => {
     const  {answer, gameId} = req.body;
-   
-
     const game = await Game.findOne({_id: gameId});
     if(!game) return res.status(400).send("Invalid game");
 
