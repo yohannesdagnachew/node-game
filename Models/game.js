@@ -22,6 +22,10 @@ const gameSchema = new mongoose.Schema({
         type: Number,
         default: 1,
     },
+    user: {
+        type: String,
+        require: true
+    }
 }, { timestamps: true });
 
 
