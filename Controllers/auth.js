@@ -68,8 +68,6 @@ module.exports.verifyOtp = async (req, res) => {
 // Login
 
 module.exports.login = async (req, res) => {
-    const { error } = loginValidation.loginValidation(req.body);
-    if(error) return res.status(400).send(error.details[0].message);
     const user =  await Users.findOne({ email: req.body.email});
     if(!user) return res.status(400).send('Invalid email or password');
     const validPassword = await bcrypt.compare(req.body.password, user.password);
