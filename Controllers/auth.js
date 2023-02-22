@@ -27,47 +27,41 @@ module.exports.signUp = async (req, res) => {
    const salt = await bcrypt.genSalt(10);
    otp.otp = await bcrypt.hash(otp.otp, salt);
    const result = await otp.save();
-   const userData = {
-         name: req.body.name,
-         email: req.body.email,
-         phone: req.body.phone,
-         password: req.body.password,
+   const hashedPassword = await bcrypt.hash(req.body.password, salt);
+   try {
+    const newUser = new Users({
+        name: req.body.name,
+        email: req.body.email,
+        password: hashedPassword,
+        phone: req.body.phone,
+    });
+     const createUser = await newUser.save();
+
    }
-   const token = jwt.sign(userData, jwtPublicKey, {expiresIn: '3m'});
-   return res.status(200).send({message: "OTP sent successfully", token});
+    catch(err) {
+        console.log(err);
+    }
+   return res.status(200).send({message: "OTP sent successfully to your phone number"});
 }
 
 module.exports.verifyOtp = async (req, res) => {
-    const userDataToVerify = jwt.verify(req.body.token, jwtPublicKey);
-    const otpHolder = await Otp.find({number: userDataToVerify.phone});
+    const phoneNumber = req.body.phone;
+    const otpHolder = await Otp.find({number: phoneNumber});
+    const newUser = await Users.findOne({phone: phoneNumber});
+    console.log(newUser);
 
     if(otpHolder.length === 0 ) return res.status(400).send("Invalid OTP");
     const rightOtp = otpHolder[otpHolder.length - 1]
     const validOtp = await bcrypt.compare(req.body.otp, rightOtp.otp);
-    if(rightOtp.number === userDataToVerify.phone && validOtp) {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(userDataToVerify.password, salt);
-        try {
-            const newUser = new Users({
-                name: userDataToVerify.name,
-                email: userDataToVerify.email,
-                password: hashedPassword,
-                phone: userDataToVerify.phone,
-            });
-
-            const createUser = await newUser.save();
-            const {name, email} = createUser;
-            const userData = {
-                name: name,
-                email: email
-            }
-            const {accessToken, refreshToken} = await generateToken(createUser);
-            const deleteOtp = await Otp.deleteMany({number: req.body.phone});
-            res.status(200).json({message: "User created successfully", userData,accessToken, refreshToken});
-        }
-        catch (err) {
-            res.status(400).send(err.message);
-        }
+    if(rightOtp.number === phoneNumber && validOtp && newUser) {
+       newUser.verified = true;
+       const createdUser = await newUser.save();
+       const {accessToken, refreshToken} = await generateToken(newUser);
+       const removeOtp = await Otp.findOneAndDelete({number: phoneNumber});
+       return res.status(200).json({accessToken, refreshToken});
+    }
+    else {
+        return res.status(400).send("Invalid OTP or phone number");
     }
 }
 
