@@ -10,7 +10,7 @@ module.exports.createGame = async (req, res) => {
     let payload = jwt.verify(token, jwtPublicKey);
     const user = await Users.findOne({ _id: payload._id });
     if (!user) return res.status(400).send("Invalid user");
-    if(user.balance <= 10) res.status(400).send("Insufficient Balance")
+    if(user.balance <= 10) return  res.status(400).send("Insufficient Balance");
     user.balance = user.balance - 10;
     await user.save();
 
@@ -40,13 +40,16 @@ module.exports.answerGameQuestion = async (req, res) => {
 
   const { answer, gameId } = req.body;
   const game = await Game.findOne({ _id: gameId });
-  console.log(game.createdAt);
+  const answeredTime = game.createdAt.getTime();
+  const currentTime = new Date().getTime();
+  console.log(answeredTime, currentTime);
+  if(currentTime - answeredTime > 1000) return res.status(400).send("Time out");
   if (!game) return res.status(400).send("Invalid game");
+  if (game.counter > 3) return res.status(400).send("Game already completed");
 
   const nextQuestion = game[`question${game.counter + 1}`];
   const prvQuestion = game[`question${game.counter}`];
 
-  if (game.counter > 3) return res.status(400).send("Game already completed");
   const question = await Question.findOne({
     questionId: prvQuestion.questionId,
   });
@@ -60,8 +63,8 @@ module.exports.answerGameQuestion = async (req, res) => {
     user.balance = user.balance + 100;
     await user.save();
   }
-
+  
   await game.save();
-
-  res.status(200).send({ message: "Game answered successfully", nextQuestion });
+  if (game.counter > 3) return res.status(400).send("Game already completed");
+  return res.status(200).send({ message: "Game answered successfully", nextQuestion });
 };
