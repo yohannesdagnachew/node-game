@@ -39,7 +39,7 @@ const app = express();
 app.enable('trust proxy');
 // 1) GLOBAL MIDDLEWARES
 
-app.use(cors(corsOptions));
+app.use(cors({ origin: ['*'] }));
 app.options('*', cors());
 
 // serving static files
