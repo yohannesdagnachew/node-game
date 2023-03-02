@@ -143,11 +143,22 @@ const login = catchAsync(async (req, res, next) => {
 		email: user.email,
 	});
 
+	const accessToken = generateJwtToken('access', {
+		id: user._id,
+		email: user.email,
+		photo: user.photo,
+		role: user.role,
+		phone: user.phone,
+		name: user.name,
+	});
+
 	user.refreshToken = refreshToken;
 	await user.save();
 
 	createAndSendCookie(user, 200, res, 'refresh', refreshToken);
-	createAndSendCookie(user, 200, res, 'access');
+	res.json({
+		accessToken,
+	});
 });
 
 const logout = catchAsync(async (req, res, next) => {
@@ -162,14 +173,9 @@ const logout = catchAsync(async (req, res, next) => {
 		process.env.REFRESH_TOKEN_SECRET,
 
 		async (err, decodedUser) => {
-			if (err) return next(new AppError('Forbiden!', 403));
-
 			const foundUser = await User.findById(decodedUser.id);
 
-			if (!foundUser) return next(new AppError('Forbiden!', 403));
-
-			if (String(foundUser._id) !== decodedUser.id)
-				return next(new AppError('Forbiden!', 403));
+			if (!foundUser) return res.status(204);
 
 			await User.findByIdAndUpdate(
 				foundUser.id,
@@ -188,7 +194,6 @@ const logout = catchAsync(async (req, res, next) => {
 			// });
 
 			res.clearCookie('refreshToken');
-			res.clearCookie('accessToken');
 
 			res.status(200).json({ status: 'success' });
 		}
@@ -196,30 +201,14 @@ const logout = catchAsync(async (req, res, next) => {
 });
 
 const protect = catchAsync(async (req, res, next) => {
-	// 1) Get token
-	const refreshToken = req.cookies['refreshToken'];
-	const accessTokenCookie = req.cookies['accessToken'];
+	const authHeader = req.headers.authorization || req.headers.Authorization;
 
-	let accessTokenAuthHeader;
-
-	if (!refreshToken || !accessTokenCookie) {
-		return next(
-			new AppError('You are not logged in! Please login to get access.', 401)
-		);
+	if (!authHeader?.startsWith('Bearer ')) {
+		return next(new AppError('Unauthorized', 401));
 	}
 
-	if (
-		req.headers.authorization &&
-		req.headers.authorization.startsWith('Bearer')
-	) {
-		accessTokenAuthHeader = req.headers.authorization.split(' ')[1];
-	}
+	const token = authHeader.split(' ')[1];
 
-	if (!accessTokenAuthHeader || accessTokenAuthHeader !== accessTokenCookie) {
-		return next(
-			new AppError('You are not logged in! Please login to get access.', 401)
-		);
-	}
 	// 2) verify token
 
 	// const decodedRefreshToken = await promisify(jsonWebtoken.verify)(
@@ -228,82 +217,115 @@ const protect = catchAsync(async (req, res, next) => {
 	// );
 
 	jsonWebtoken.verify(
-		accessTokenAuthHeader,
+		token,
 		process.env.ACCESS_TOKEN_SECRET,
 		async (err, decodedAccessToken) => {
 			if (err) {
-				jsonWebtoken.verify(
-					refreshToken,
-					process.env.REFRESH_TOKEN_SECRET,
-					async (err, decodedRefreshToken) => {
-						if (err) {
-							return next(
-								new AppError(
-									'You are not logged in! Please login to get access.',
-									401
-								)
-							);
-						}
-
-						const currentUser = await User.findById(decodedRefreshToken.id);
-
-						if (!currentUser) {
-							return next(
-								new AppError(
-									'The user belongs to the token does no longer exist.',
-									401
-								)
-							);
-						}
-
-						if (currentUser.changedPasswordAfter(decodedRefreshToken.iat)) {
-							return next(
-								new AppError(
-									'User recently changed password! Please login again.',
-									401
-								)
-							);
-						}
-
-						const accessToken = generateJwtToken('access', {
-							_id: currentUser._id,
-							name: currentUser.name,
-							email: currentUser.email,
-							photo: currentUser.photo,
-							role: currentUser.role,
-						});
-
-						res.cookie('accessToken', accessToken, cookiesOption.access);
-
-						req.userId = currentUser._id;
-						next();
-					}
+				return next(
+					new AppError(
+						'You are not logged in! Please login to get access.',
+						401
+					)
 				);
-			} else {
-				const currentUser = await User.findById(decodedAccessToken._id);
-
-				if (!currentUser) {
-					return next(
-						new AppError(
-							'The user belongs to the token does no longer exist.',
-							401
-						)
-					);
-				}
-
-				if (currentUser.changedPasswordAfter(decodedAccessToken.iat)) {
-					return next(
-						new AppError(
-							'User recently changed password! Please login again.',
-							401
-						)
-					);
-				}
-
-				req.userId = currentUser._id;
-
-				next();
 			}
+
+			const currentUser = await User.findById(decodedAccessToken.id);
+
+			if (!currentUser) {
+				return next(
+					new AppError(
+						'The user belongs to the token does no longer exist.',
+						401
+					)
+				);
+			}
+
+			req.userId = currentUser._id;
+			next();
+		}
+	);
+});
+
+const refreshAccessToken = catchAsync(async (req, res, next) => {
+	const refreshToken = req.cookies['refreshToken'];
+
+	if (!refreshToken) {
+		return next(
+			new AppError('You are not logged in! Please login to get access.', 403)
+		);
+
+		// return res.status(401).json({
+		//   status: 'fail',
+		//   message: 'You are not logged in! Please login to get access.',
+		// });
+	}
+
+	jsonWebtoken.verify(
+		refreshToken,
+		process.env.REFRESH_TOKEN_SECRET,
+		async (err, decodedRefreshToken) => {
+			if (err) {
+				return next(
+					new AppError(
+						'You are not logged in! Please login to get access.',
+						403
+					)
+				);
+
+				// return res.status(401).json({
+
+				//   status: 'fail',
+
+				//   message: 'You are not logged in! Please login to get access.',
+				// });
+			}
+
+			const currentUser = await User.findById(decodedRefreshToken.id);
+
+			if (!currentUser) {
+				return next(
+					new AppError(
+						'The user belongs to the token does no longer exist.',
+						403
+					)
+				);
+
+				// return res.status(401).json({
+
+				//   status: 'fail',
+
+				//   message: 'The user belongs to the token does no longer exist.',
+				// });
+			}
+
+			if (currentUser.changedPasswordAfter(decodedRefreshToken.iat)) {
+				return next(
+					new AppError(
+						'User recently changed password! Please login again.',
+						403
+					)
+				);
+
+				// return res.status(401).json({
+
+				//   status: 'fail',
+
+				//   message: 'User recently changed password! Please login again.',
+				// });
+			}
+
+			const accessToken = generateJwtToken('access', {
+				_id: currentUser._id,
+				name: currentUser.name,
+				email: currentUser.email,
+				photo: currentUser.photo,
+				phone: currentUser.phone,
+				role: currentUser.role,
+			});
+
+			return res.status(200).json({
+				accessToken,
+			});
 		}
 	);
 });
@@ -437,4 +459,5 @@ module.exports = {
 	logout,
 	protect,
 	restrictTo,
+	refreshAccessToken,
 };
