@@ -24,7 +24,13 @@ const { fileURLToPath } = require('url');
 errorController.unCaughtException();
 
 const corsOptions = {
-	origin: ['http://localhost:3000', 'http://localhost:3001', undefined],
+	origin: [
+		'https://lambent-maamoul-6d6af3.netlify.app/',
+		'http://localhost:3000',
+		'http://localhost:3001',
+		'http://localhost:3002',
+		undefined,
+	],
 	optionSuccessStatus: 200,
 	credentials: true,
 };
