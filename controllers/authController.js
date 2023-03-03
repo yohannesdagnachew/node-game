@@ -12,11 +12,12 @@ dotenv.config();
 
 const cookiesOption = {
 	refresh: {
+		httpOnly: true, //accessible only by web server
+		secure: true, //https
+		sameSite: 'None', //cross-site cookie
 		maxAge: new Date(
 			Date.now() + process.env.REFRESH_TOKEN_COOKIE_EXPIRES_IN * 60 * 1000
 		),
-		httpOnly: true,
-		secure: true,
 	},
 	access: {
 		maxAge: new Date(
