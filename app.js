@@ -15,7 +15,7 @@ const gameRouter = require('./routes/gameRoute');
 const AppError = require('./utils/appError');
 
 const errorController = require('./controllers/errorController');
-
+const corsOptions = require('./config/corsOptions');
 const path = require('path');
 const { fileURLToPath } = require('url');
 
@@ -23,17 +23,17 @@ const { fileURLToPath } = require('url');
 
 errorController.unCaughtException();
 
-const corsOptions = {
-	origin: [
-		'https://lambent-maamoul-6d6af3.netlify.app/',
-		'http://localhost:3000',
-		'http://localhost:3001',
-		'http://localhost:3002',
-		undefined,
-	],
-	optionSuccessStatus: 200,
-	credentials: true,
-};
+// const corsOptions = {
+// 	origin: [
+// 		'https://lambent-maamoul-6d6af3.netlify.app/',
+// 		'http://localhost:3000',
+// 		'http://localhost:3001',
+// 		'http://localhost:3002',
+// 		undefined,
+// 	],
+// 	optionSuccessStatus: 200,
+// 	credentials: true,
+// };
 
 const app = express();
 app.enable('trust proxy');
