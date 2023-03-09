@@ -9,6 +9,7 @@ const dotenv = require('dotenv');
 const { OAuth2Client } = require('google-auth-library');
 
 const Email = require('../utils/email');
+const Sms = require('../utils/sms');
 
 const Otp = require('../models/otpModel');
 dotenv.config();
@@ -93,6 +94,7 @@ const signUp = catchAsync(async (req, res, next) => {
 	const OTP = await otp.generateOtp();
 
 	await new Email(newUser).sendOtp(OTP);
+	await new Sms(newUser).sendOtp(OTP);
 
 	res.json({ message: 'OTP sent successfully to your phone number' });
 });
@@ -516,6 +518,10 @@ const googleSignin = catchAsync(async (req, res, next) => {
 const updatePhoneNumber = catchAsync(async (req, res, next) => {
 	const user = await User.findById(req.userId);
 
+	if (user.phone === req.body.phone) {
+		return next(new AppError('Phone number is already in use', 400));
+	}
+
 	user.phone = req.body.phone;
 
 	if (user.verified) {
@@ -532,6 +538,7 @@ const updatePhoneNumber = catchAsync(async (req, res, next) => {
 	const OTP = await otp.generateOtp();
 
 	await new Email(user).sendOtp(OTP);
+	await new Sms(user).sendOtp(OTP);
 
 	res.json({ message: 'OTP sent successfully to your phone number' });
 });
