@@ -14,6 +14,10 @@ const gameSchema = new mongoose.Schema({
         type: Object,
         timestamps: true,
     },
+    question4: {
+        type: Object,
+        timestamps: true,
+    },
     score: {
         type: Number,
         default: 0,
