@@ -51,8 +51,8 @@ module.exports.answerGameQuestion = catchAsync(async (req, res, next) => {
 	const  user =  await Users.findById(userId);
 
 	const user_id = user._id;
-	const { answer, gameId, questionId } = req.body;
-	const game = await Game.findOne({ _id: gameId });
+	const { answer, game_id, questionId } = req.body;
+	const game = await Game.findOne({ _id: game_id });
 	if (!game) return next(new AppError('Invalid game'), 400);
 	const gameCreatedTime = game.createdAt.getTime();
 	const currentTime = new Date().getTime();
