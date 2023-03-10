@@ -46,10 +46,6 @@ app.use(cors(corsOptions));
 // app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public/build')));
 
-app.get('*', (req, res) => {
-	res.sendFile(path.resolve(__dirname, 'public', 'build', 'index.html'));
-});
-
 // Set security HTTP headers
 app.use(helmet());
 
